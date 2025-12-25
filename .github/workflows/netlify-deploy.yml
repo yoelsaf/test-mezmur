@@ -1,0 +1,39 @@
+name: Build and Deploy Flutter Web to Netlify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (for Netlify CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Flutter web (release)
+        run: flutter build web --release
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          netlify deploy --dir=build/web --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN --prod
